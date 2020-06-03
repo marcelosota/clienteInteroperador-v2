@@ -216,4 +216,59 @@ public class ServicioDINARDAP {
 	            
 	        }
 	    }	
+		public ConsultarResponse obtenerDatosFuente(String parametro, String documento,String paquete,String usuario,String clave) {
+	        try {
+
+	            JaxWsProxyFactoryBean factory = new JaxWsProxyFactoryBean();
+	            factory.setServiceClass(Interoperador.class);
+	            factory.setAddress("https://interoperabilidad.dinardap.gob.ec/interoperador-v2?wsdl");
+
+	            /**
+	             * ****************
+	             * cambiar usurio *****************
+	             */
+	            factory.setUsername(usuario);
+	            /**
+	             * ****************
+	             * cambiar password *******************
+	             */
+	            factory.setPassword(clave);
+
+	            Interoperador port = (Interoperador) factory.create();
+	            Client client = ClientProxy.getClient(port);
+
+	            if (client != null) {
+	                HTTPConduit conduit = (HTTPConduit) client.getConduit();
+	                HTTPClientPolicy policy = new HTTPClientPolicy();
+	                //policy.setConnectionTimeout(ParametrosUtil.CONNECTION_TIMEOUT);
+	                //policy.setReceiveTimeout(ParametrosUtil.RECEIVE_TIMEOUT);
+	                policy.setAllowChunking(false);
+	                conduit.setClient(policy);
+
+	            }
+	            Parametro paramCodigoPaquete = new Parametro();
+	            paramCodigoPaquete.setNombre("codigoPaquete");
+	            paramCodigoPaquete.setValor(paquete);
+
+	            Parametro paramIdent = new Parametro();
+	            paramIdent.setNombre(parametro);
+	            paramIdent.setValor(documento);
+
+	            Parametros parametros = new Parametros();
+	            parametros.getParametro().add(paramCodigoPaquete);
+	            parametros.getParametro().add(paramIdent);
+
+	            Consultar consultar = new Consultar();
+	            consultar.setParametros(parametros);
+	            ConsultarResponse response = port.consultar(consultar);
+
+	           return response;
+
+	        } catch (ConsultarFaultException ex) {
+	        	
+	        	ex.printStackTrace(System.out);
+	        	return null;
+	            
+	        }
+	    }
 }
